@@ -12,7 +12,8 @@ var mainView = myApp.addView('.view-main', {
     dynamicNavbar: true
 });
 
-var todoData = localStorage.td7Data ? JSON.parse(localStorage.td7Data) : [];
+var uri = "https://api.mongolab.com/api/1/databases/codepr-test/collections/tasks?apiKey=bmRDuUZXTJgyTUdlihwv6BHq44J8u9J5";
+var todoData = [];
 
 $$('.popup').on('open', function () {
     $$('body').addClass('with-popup');
@@ -45,7 +46,8 @@ $$('.popup .add-task').on('click', function () {
         checked: '',
         id: (new Date()).getTime()
     });
-    localStorage.td7Data = JSON.stringify(todoData);
+    //localStorage.td7Data = JSON.stringify(todoData);
+    save2db();
     buildTodoListHtml();
     myApp.closeModal('.popup');
 });
@@ -58,7 +60,27 @@ function buildTodoListHtml() {
     $$('.todo-items-list').html(renderedList);
 }
 // Build HTML on App load
-buildTodoListHtml();
+// buildTodoListHtml();
+$.ajax(uri)
+    .done(function(data) {
+        //console.log(data);
+        todoData = data;
+        buildTodoListHtml();
+    })
+    .fail(function() {
+        console.log('fail');
+    })
+    .always(function() {
+        console.log('complete');
+    });
+// Save to DB
+function save2db() {
+    $.ajax( { url: uri,
+          data: JSON.stringify(todoData),
+          type: "PUT",
+          contentType: "application/json" } );
+}
+
 
 // Mark checked
 $$('.todo-items-list').on('change', 'input', function () {
@@ -69,7 +91,8 @@ $$('.todo-items-list').on('change', 'input', function () {
     for (var i = 0; i < todoData.length; i++) {
         if (todoData[i].id === id) todoData[i].checked = checked ? 'checked' : '';
     }
-    localStorage.td7Data = JSON.stringify(todoData);
+    //localStorage.td7Data = JSON.stringify(todoData);
+    save2db();
 });
 
 // Delete item
@@ -81,7 +104,8 @@ $$('.todo-items-list').on('delete', '.swipeout', function () {
     }
     if (typeof(index) !== 'undefined') {
         todoData.splice(index, 1);
-        localStorage.td7Data = JSON.stringify(todoData);
+        //localStorage.td7Data = JSON.stringify(todoData);
+        save2db();
     }
 });
 
